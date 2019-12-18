@@ -58,13 +58,8 @@ function init_room(){
     ceiling.geometry.translate(0,5,0);
     scene.add(ceiling);
 
-    var ceiling_light = new THREE.Mesh(new THREE.PlaneBufferGeometry( 2, 2 ), ground_mat);
-    ceiling_light.geometry.rotateX( - 270 * Math.PI / 180 );
-    ceiling_light.geometry.translate(0,4.96,0);
-    scene.add(ceiling_light);
-
     var light = new THREE.PointLight(0xffffff, 0.5);
-    light.position.y += 4.5
+    light.position.y += 4.5;
     scene.add(light);
 
     scene.add(new THREE.AmbientLight(0xFFFFFF, 0.2));
@@ -88,10 +83,11 @@ function init_room(){
 	new GUIVR.GuiVRButton("Green", 0, 0, 255, true, function(x){board.setGreen(x)}),
 	new GUIVR.GuiVRButton("Blue", 0, 0, 255, true, function(x){board.setBlue(x)})];
     gui = new GUIVR.GuiVRMenu(button_list);
-    gui.rotation.x = -0.2;
+    gui.rotation.y = -0.2;
     gui.scale.x = 0.45;
     gui.scale.y = 0.45;
-    gui.position.y = -0.7;
+    gui.position.x = 0.45;
+    gui.position.y = -0.45;
     gui.position.z = -1.5;
     scene.add(gui);
 
@@ -132,6 +128,8 @@ function init() {
     line.scale.z = 5;
     controller1.add(line.clone());
 
+    window.onclick = onSelectStart;
+    
 }
 
 function debug_callback(x){
@@ -139,16 +137,33 @@ function debug_callback(x){
 }
 
 function onSelectStart( event ) {
-    var controller = event.target;
-    if (oculus_double_click_skip){
-	oculus_double_click_skip = false;
-	return;
-    }
-    oculus_double_click_skip = true;
 
-    debug_console.write("hello");
-    
-    GUIVR.intersectObjects(controller);    
+    if (event instanceof MouseEvent && !renderer.xr.isPresenting()){
+	var mouse = new THREE.Vector2();
+	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	var raycaster = new THREE.Raycaster();
+	raycaster.setFromCamera(mouse, camera);
+
+	GUIVR.intersectObjects(raycaster);
+    } else if (!(event instanceof MouseEvent) && renderer.xr.isPresenting()){
+        var controller = event.target;
+	if (oculus_double_click_skip){
+	    oculus_double_click_skip = false;
+	    return;
+	}
+	oculus_double_click_skip = true;
+
+	var line = controller.getObjectByName('line');
+
+	var tempMatrix = new THREE.Matrix4();
+	tempMatrix.identity().extractRotation(controller.matrixWorld);
+	var raycaster = new THREE.Raycaster();
+	raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+	raycaster.ray.direction.set( 0, 0, - 1 ).applyMatrix4(tempMatrix);
+	
+	GUIVR.intersectObjects(raycaster);
+    }
 }
 
 function onSelectEnd( event ) {
@@ -168,7 +183,7 @@ function animate() {
 function render() {
 
     gui.follow_user(camera.matrixWorld);
-
+    
     renderer.render(scene, camera);
 }
 

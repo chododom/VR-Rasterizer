@@ -4,14 +4,8 @@ import * as THREE from '../extern/three.module.js';
 const gui_elements = [];
 
 
-export function intersectObjects(controller){
-    var line = controller.getObjectByName('line');
+export function intersectObjects(raycaster){
 
-    var tempMatrix = new THREE.Matrix4();
-    tempMatrix.identity().extractRotation(controller.matrixWorld);
-    var raycaster = new THREE.Raycaster();
-    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-    raycaster.ray.direction.set( 0, 0, - 1 ).applyMatrix4(tempMatrix);
 
     var colliders = [];
     for (var i = 0; i < gui_elements.length; i++){
@@ -39,7 +33,6 @@ export class GuiVR extends THREE.Group {
 	    throw new TypeError("GuiVR is abstract class and cannot be instantiated.");
 	}
 	gui_elements.push(this);
-	console.log(gui_elements);
     }
     
 }
@@ -87,7 +80,6 @@ export class GuiVRButton extends THREE.Group {
 	ctx.textAlign = "left";
 	ctx.strokeText(this.label, 15, ctx.canvas.height/1.5);
 	ctx.fillText(this.label, 15, ctx.canvas.height/1.5);
-	console.log("hello?");
 	if (this.is_int){
 	    var interval_width = 1 / (this.max_val - this.min_val);
 	    var width = Math.floor(this.val * interval_width * Math.floor(ctx.canvas.width/2));
@@ -102,7 +94,6 @@ export class GuiVRButton extends THREE.Group {
     }
 
     collide(uv, pt){
-	console.log("Collide with");
 	val = 0;
 	if (uv.x < 0.50 - epsilon)
 	    return;

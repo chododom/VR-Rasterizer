@@ -16,15 +16,20 @@ export class Board extends GUIVR.GuiVR {
 
     constructor(){
 	super();
-	this.n = 20;
-	this.stride = 20;
+	this.n = 15;
+	this.stride = 15;
 	this.dim = this.n * this.stride + 1;
-	
-	this._makeBoard();
-	var board_tex = this._makeBoardTexture();
-	board_tex.magFilter = THREE.LinearFilter;
-	var board_mat = new THREE.MeshBasicMaterial({map: board_tex});
-	this.board = new THREE.Mesh(new THREE.PlaneBufferGeometry( 2, 2 ), board_mat);
+
+	this.ctx = document.createElement('canvas').getContext('2d');
+	this.ctx.canvas.width = this.dim;
+	this.ctx.canvas.height = this.dim;
+	this.texture = new THREE.CanvasTexture(this.ctx.canvas);
+	this.texture.magFilter = THREE.LinearFilter;
+	this.texture.minFilter = THREE.LinearFilter;
+	this.reset();
+
+	var board_mat = new THREE.MeshBasicMaterial({map: this.texture});
+	this.board = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), board_mat);
 	this.collider = this.board;
 	this.add(this.board);
 	this.clicks = [];
@@ -67,24 +72,16 @@ export class Board extends GUIVR.GuiVR {
 	}
     }
 	
-    
     writePixel(x, y, c){
-	var i = (x * this.n + y) * 3;
-	this.board_data[i] = c[0];
-	this.board_data[i + 1] = c[1];
-	this.board_data[i + 2] = c[2];
-	this._updateBoardTexture();
-    }
-
-    reset(){
-	this._makeBoard();
-	this._updateBoardTexture();
+	console.log(x, y);
+	this.ctx.fillStyle = "#" + (c[0] * 256 * 256 + c[1] * 256 + c[2]).toString(16);
+	this.ctx.fillRect(y*this.stride + 1, (this.n - x - 1) * this.stride + 1, this.stride - 1, this.stride - 1);
+	this.texture.needsUpdate = true;
     }
 
     collide(uv, pt){
 
 	var pix = this._uvToPix(uv);
-	console.log("board clicked");
 	if (this.clicks.length == 0){
 	    this.guide.geometry.setDrawRange(0,0);
 	    this.guide.geometry.attributes.position.needsUpdate = true;
@@ -95,7 +92,6 @@ export class Board extends GUIVR.GuiVR {
 	var pos = this.guide.geometry.attributes.position.array;
 	pos[i++] = pt.x; pos[i++] = pt.y - 1.6; pos[i++] = pt.z + 2.01;  // XXX - this is a hack.  Need to compute from board transform.
 	pos[i++] = pos[0]; pos[i++] = pos[1]; pos[i++] = pos[2];
-	console.log(pos);
 	this.remove(this.guide);
 	var guide_geo = new THREE.BufferGeometry();
 	guide_geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -106,25 +102,21 @@ export class Board extends GUIVR.GuiVR {
 	
 	if (this.edit_mode == POINT_MODE) {
 	    RAS.rasterizePoint(this, this.clicks[0], this.brush_color);
-	    this._updateBoardTexture();
 	    this.clicks = [];
 	} else if ((this.edit_mode == LINE_MODE || this.edit_mode == ANTI_MODE) && this.clicks.length == 2){
 	    if (this.edit_mode == LINE_MODE)
 		RAS.rasterizeLine(this, this.clicks[0], this.clicks[1], this.brush_color);
 	    else
 		RAS.rasterizeAntialiasLine(this, this.clicks[0], this.clicks[1], this.brush_color);
-	    this._updateBoardTexture();
 	    this.clicks = [];
 	} else if ((this.edit_mode == TRI_MODE || this.edit_mode == FILL_MODE) && this.clicks.length == 3){
 	    if (this.edit_mode == TRI_MODE)
 		RAS.rasterizeTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brush_color);
 	    else
 		RAS.rasterizeFilledTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brush_color);
-	    this._updateBoardTexture();
 	    this.clicks = [];
 	} else if (this.edit_mode == POLY_MODE && this.clicks.length == 7){
 	    RAS.rasterizeFilledSevengon(this, this.clicks, this.brush_color);
-	    this._updateBoardTexture();
 	    this.clicks = [];
 	}
 	
@@ -136,50 +128,18 @@ export class Board extends GUIVR.GuiVR {
 	return [r, c];
     }
     
-    _makeBoard(){
-	var board_size = this.n * this.n;
-	this.board_data = new Uint8Array(3 * board_size);
-	for (var r = 0; r < this.n; r++){
-	    for (var c = 0; c < this.n; c++){
-	    var i = (r * this.n + c)*3;
-		this.board_data[i] = 255;
-		this.board_data[i+1] = 255;
-		this.board_data[i+2] = 255;
-		//base_data[i] = Math.random()*255;
-		//base_data[i+1] = Math.random()*255;
-		//base_data[i+2] = Math.random()*255;
+    reset(){
+	var ctx = this.ctx;
+	ctx.fillStyle = '#000000';
+	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.fillStyle = '#FFFFFF';
+	for (var r = 1; r < ctx.canvas.width; r += this.stride){
+	    for (var c = 1; c < ctx.canvas.height; c += this.stride){
+		ctx.fillRect(r, c, this.stride - 1, this.stride - 1);
 	    }
 	}
+	this.texture.needsUpdate = true;
     }
     
-    _makeBoardTexture(){
-	
-	var dim = this.n * this.stride + 1;
-	var size = dim * dim;
-	var data = new Uint8Array(3 * size);
-	for (var r = 0; r < dim; r++){
-	    for (var c = 0; c < dim; c++){
-		var i = (r * dim + c) * 3;
-		if (r % this.stride == 0 || c % this.stride == 0) {
-		    data[i] = 0;
-		    data[i + 1] = 0;
-		    data[i + 2] = 0;
-		} else {
-		    var j = (Math.floor(r / this.stride) * this.n + Math.floor(c / this.stride)) * 3;
-		    data[i] = this.board_data[j];
-		    data[i + 1] = this.board_data[j + 1];
-		    data[i + 2] = this.board_data[j + 2];
-		}
-	    }
-	}
-	return new THREE.DataTexture(data, dim, dim, THREE.RGBFormat);
-    }
-    
-    _updateBoardTexture(){
-	var board_tex = this._makeBoardTexture();
-	board_tex.magFilter = THREE.LinearFilter;
-	this.board.material.map = board_tex;
-	this.board.material.update = true;
-    }
     
 }
