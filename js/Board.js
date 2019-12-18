@@ -24,7 +24,7 @@ export class Board extends GUIVR.GuiVR {
 	var board_tex = this._makeBoardTexture();
 	board_tex.magFilter = THREE.LinearFilter;
 	var board_mat = new THREE.MeshBasicMaterial({map: board_tex});
-	this.board = new THREE.Mesh(new THREE.PlaneBufferGeometry( 2.5, 2.5 ), board_mat);
+	this.board = new THREE.Mesh(new THREE.PlaneBufferGeometry( 2, 2 ), board_mat);
 	this.collider = this.board;
 	this.add(this.board);
 	this.clicks = [];
@@ -39,7 +39,7 @@ export class Board extends GUIVR.GuiVR {
 	this.guide = new THREE.Line(guide_geo, guide_mat);
 	this.add(this.guide);
     }
-    
+
     getHeight(){
 	return n;
     }
@@ -48,6 +48,26 @@ export class Board extends GUIVR.GuiVR {
 	return n;
     }
 
+    setRed(r){
+	this.brush_color[0] = r;
+    }
+
+    setGreen(g){
+	this.brush_color[1] = g;
+    }
+    
+    setBlue(b){
+	this.brush_color[2] = b;
+    }
+
+    setMode(m){
+	if (this.edit_mode != m){
+	    this.edit_mode = m;
+	    this.clicks = [];
+	}
+    }
+	
+    
     writePixel(x, y, c){
 	var i = (x * this.n + y) * 3;
 	this.board_data[i] = c[0];
