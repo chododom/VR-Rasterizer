@@ -67,7 +67,7 @@ export class DebugConsole extends GUIVR.GuiVR {
 		height: 0.02,
 		curveSegments: 3,
 	    } );
-	    var textMaterial = new THREE.MeshPhongMaterial( { color: 0xAA0000, specular: 0x0000AA } );
+	    var textMaterial = new THREE.MeshPhongMaterial( { color: 0xad7fa8, specular: 0x111111 } );
 	    var debug_mesh = new THREE.Mesh( textGeo, textMaterial );
 	    debug_mesh.position.x = -current.w / 2 + 0.02;
 	    debug_mesh.position.y = current.h / 2 + 0.03;

@@ -2,7 +2,7 @@
 // CSC 385 Computer Graphics
 // Version: Winter 2019
 // Project 1: Main program.
-// Initializes scene, VR system, and eventhandlers.
+// Initializes scene, VR system, and event handlers.
 
 import * as THREE from '../extern/three.module.js';
 import { VRButton } from '../extern/VRButton.js';
@@ -191,7 +191,7 @@ function render() {
 
     // Force the gui to appear as heads up display tracking headset
     // position.
-    gui.follow_user(camera.matrixWorld);
+    gui.follow(camera.matrixWorld);
     
     renderer.render(scene, camera);
 }

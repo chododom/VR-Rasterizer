@@ -1,8 +1,13 @@
+// Author: Matthew Anderson
+// CSC 385 Computer Graphics
+// Version: Winter 2019
+// Project 1: Drawing board representation.
+
 import * as THREE from '../extern/three.module.js';
 import * as GUIVR from './GuiVR.js';
 import * as RAS from './rasterizer.js';
 
-// Constants for drawing mode
+// Constants for specifying drawing mode.
 const Modes = {
     POINT_MODE: 0,
     LINE_MODE: 1,
@@ -10,42 +15,71 @@ const Modes = {
     FILL_MODE: 3,
     ANTI_MODE: 4,
     POLY_MODE: 5};
-
 const MAX_POLY_SIDES = 7;
 
+// Class for displaying and interacting with a drawing board in VR.
+// Specialized THREE.Group.
 export class Board extends GUIVR.GuiVR {
 
+    // Creates a 15x15 drawing board with default settings.
     constructor(){
 	super();
-	this.n = 15;
-	this.stride = 15;
-	this.dim = this.n * this.stride + 1;
 
+	this.n = 15; // Number of pixels in each dimension.
+	this.stride = 15; // Size of each pixel in internal canvas.
+	this.dim = this.n * this.stride + 1; // Size of internal canvas.
+	
+	// Create canvas that will display the output.
 	this.ctx = document.createElement('canvas').getContext('2d');
 	this.ctx.canvas.width = this.dim;
 	this.ctx.canvas.height = this.dim;
+	// Create texture from canvas.
 	this.texture = new THREE.CanvasTexture(this.ctx.canvas);
 	this.texture.magFilter = THREE.LinearFilter;
 	this.texture.minFilter = THREE.LinearFilter;
 	this.reset();
+	// Create rectangular mesh textured with output that is displayed.
+	var boardMaterial = new THREE.MeshBasicMaterial({map: this.texture});
+	var c = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), boardMaterial);
+	this.add(c);
+	// Set the board's rectangle to collider as a gui element.
+	this.collider = c;
 
-	var board_mat = new THREE.MeshBasicMaterial({map: this.texture});
-	this.board = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), board_mat);
-	this.collider = this.board;
-	this.add(this.board);
+	// Set the previously seen clicks, initial edit mode, and brush color.
 	this.clicks = [];
-	this.edit_mode = Modes.POINT_MODE;
-	this.brush_color = [255, 0, 0];
+	this.editMode = Modes.POINT_MODE;
+	this.brushColor = new THREE.Vector3([255, 0, 0]);
 
-	var guide_geo = new THREE.BufferGeometry(); // XXX - Local transform problem.
-	var guide_pos = new Float32Array((MAX_POLY_SIDES + 1) * 3);
-	guide_geo.setAttribute('position', new THREE.BufferAttribute(guide_pos, 3));
-	guide_geo.setDrawRange(0,0);
-	var guide_mat = new THREE.LineBasicMaterial({color: 0x0000FF});
-	this.guide = new THREE.Line(guide_geo, guide_mat);
+	// Set up the geometry to draw the tracer line.
+	var guideGeometry = new THREE.BufferGeometry(); // XXX - Local transform problem.
+	var guidePositions = new Float32Array((MAX_POLY_SIDES + 1) * 3);
+	guideGeometry.setAttribute('position', new THREE.BufferAttribute(guidePositions, 3));
+	guideGeometry.setDrawRange(0,0);
+	var guideMaterial = new THREE.LineBasicMaterial({color: 0x0000FF});
+	this.guide = new THREE.Line(guideGeometry, guideMaterial);
 	this.add(this.guide);
+
+    	var loader = new THREE.FontLoader();
+	var current = this;
+	loader.load( '../extern/fonts/helvetiker_bold.typeface.json', function ( font ) {
+	    var textGeo = new THREE.TextBufferGeometry( "Bresenham's Algorithm", {
+		font: font,
+		size: 0.15,
+		height: 0.02,
+		curveSegments: 3,
+	    } );
+	    var textMaterial = new THREE.MeshPhongMaterial( { color: 0x729FCF, specular: 0x000000 } );
+	    var debug_mesh = new THREE.Mesh( textGeo, textMaterial );
+	    debug_mesh.position.x = -1.15;
+	    debug_mesh.position.y = 1;
+	    debug_mesh.position.z = 0.01;
+	    current.add(debug_mesh);
+	});
+	
     }
 
+    // Getters and Setters.
+    
     getHeight(){
 	return n;
     }
@@ -55,30 +89,34 @@ export class Board extends GUIVR.GuiVR {
     }
 
     setRed(r){
-	this.brush_color[0] = r;
+	this.brushColor[0] = r;
     }
 
     setGreen(g){
-	this.brush_color[1] = g;
+	this.brushColor[1] = g;
     }
     
     setBlue(b){
-	this.brush_color[2] = b;
+	this.brushColor[2] = b;
     }
 
     setMode(m){
-	if (this.edit_mode != m){
-	    this.edit_mode = m;
+	if (this.editMode != m){
+	    this.editMode = m;
 	    this.clicks = [];
 	}
     }
-	
+
+    // Changes the color of the pixel at coordinates x, y to color c.
+    // The parameters x and y are integers, and c is a THREE.Vector3
+    // specifying a color.
     writePixel(x, y, c){
 	this.ctx.fillStyle = "#" + (c[0] * 256 * 256 + c[1] * 256 + c[2]).toString(16);
-	this.ctx.fillRect(y*this.stride + 1, (this.n - x - 1) * this.stride + 1, this.stride - 1, this.stride - 1);
+	this.ctx.fillRect(x * this.stride + 1, y * this.stride + 1, this.stride - 1, this.stride - 1);
 	this.texture.needsUpdate = true;
     }
 
+    // Resets the board to white in every pixel.
     reset(){
 	var ctx = this.ctx;
 	ctx.fillStyle = '#000000';
@@ -92,54 +130,67 @@ export class Board extends GUIVR.GuiVR {
 	this.texture.needsUpdate = true;
     }
     
-
+    // Click hander.  
     collide(uv, pt){
 
-	var pix = this._uvToPix(uv);
+	// Compute the pixel coordinate from uv texture coordinates.
+	var pix = [Math.min(Math.max(Math.floor((uv.x * this.dim - 0.5) / this.stride),0), this.dim - 1),
+		   this.n - 1 - Math.min(Math.max(Math.floor((uv.y * this.dim - 0.5) / this.stride),0), this.dim - 1)];
+	
+	// Reset the tracer if a new shape is being drawn.
 	if (this.clicks.length == 0){
 	    this.guide.geometry.setDrawRange(0,0);
 	    this.guide.geometry.attributes.position.needsUpdate = true;
 	}
-	
-	var i = (this.clicks.length)*3;
+
+	// Remember the current click.
 	this.clicks.push(pix);
+	
+	// Update the tracer.
+	var i = (this.clicks.length-1)*3;
 	var pos = this.guide.geometry.attributes.position.array;
-	pos[i++] = pt.x; pos[i++] = pt.y - 1.6; pos[i++] = pt.z + 2.01;  // XXX - this is a hack.  Need to compute from board transform.
+	// XXX - this is a hack.  Need to compute from board transform.
+	pos[i++] = pt.x; pos[i++] = pt.y - 1.6; pos[i++] = pt.z + 2.01;
 	pos[i++] = pos[0]; pos[i++] = pos[1]; pos[i++] = pos[2];
 	this.remove(this.guide);
-	var guide_geo = new THREE.BufferGeometry();
-	guide_geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-	guide_geo.setDrawRange(0,this.clicks.length+1);
-	var guide_mat = new THREE.LineBasicMaterial({color: 0x0000FF});
-	this.guide = new THREE.Line(guide_geo, guide_mat);
+	var guideGeometry = new THREE.BufferGeometry();
+	guideGeometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+	guideGeometry.setDrawRange(0,this.clicks.length+1);
+	var guideMaterial = new THREE.LineBasicMaterial({color: 0x0000FF});
+	this.guide = new THREE.Line(guideGeometry, guideMaterial);
 	this.add(this.guide);
-	
-	if (this.edit_mode == Modes.POINT_MODE) {
-	    RAS.rasterizePoint(this, this.clicks[0], this.brush_color);
+
+	// If enough clicks have been make for the current editing
+	// mode call the appropriate function implemented in the
+	// rasterizer.  If so, reset the clicks list back to empty for
+	// the next drawing.
+	if (this.editMode == Modes.POINT_MODE) {
+	    RAS.rasterizePoint(this, this.clicks[0], this.brushColor);
 	    this.clicks = [];
-	} else if ((this.edit_mode == Modes.LINE_MODE || this.edit_mode == Modes.ANTI_MODE) && this.clicks.length == 2){
-	    if (this.edit_mode == Modes.LINE_MODE)
-		RAS.rasterizeLine(this, this.clicks[0], this.clicks[1], this.brush_color);
+	    
+	} else if ((this.editMode == Modes.LINE_MODE || this.editMode == Modes.ANTI_MODE)
+		   && this.clicks.length == 2){
+	    if (this.editMode == Modes.LINE_MODE)
+		RAS.rasterizeLine(this, this.clicks[0], this.clicks[1], this.brushColor);
 	    else
-		RAS.rasterizeAntialiasLine(this, this.clicks[0], this.clicks[1], this.brush_color);
+		RAS.rasterizeAntialiasLine(this, this.clicks[0], this.clicks[1], this.brushColor);
 	    this.clicks = [];
-	} else if ((this.edit_mode == Modes.TRI_MODE || this.edit_mode == Modes.FILL_MODE) && this.clicks.length == 3){
-	    if (this.edit_mode == Modes.TRI_MODE)
-		RAS.rasterizeTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brush_color);
+	    
+	} else if ((this.editMode == Modes.TRI_MODE || this.editMode == Modes.FILL_MODE)
+		   && this.clicks.length == 3){
+	    if (this.editMode == Modes.TRI_MODE)
+		RAS.rasterizeTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brushColor);
 	    else
-		RAS.rasterizeFilledTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brush_color);
+		RAS.rasterizeFilledTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brushColor);
 	    this.clicks = [];
-	} else if (this.edit_mode == Modes.POLY_MODE && this.clicks.length == 7){
-	    RAS.rasterizeFilledSevengon(this, this.clicks, this.brush_color);
+	    
+	} else if (this.editMode == Modes.POLY_MODE
+		   && this.clicks.length == 7){
+	    RAS.rasterizeFilledSevengon(this, this.clicks, this.brushColor);
 	    this.clicks = [];
 	}
 	
     }
 
-    _uvToPix(uv){
-	var r = Math.min(Math.max(Math.floor((uv.y * this.dim - 0.5) / this.stride),0), this.dim - 1);
-	var c = Math.min(Math.max(Math.floor((uv.x * this.dim - 0.5) / this.stride),0), this.dim - 1);
-	return [r, c];
-    }
     
 }
