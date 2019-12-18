@@ -1,6 +1,8 @@
 // Author: ???
 // CSC 385 Computer Graphics
-// Version: Winter 2018
+// Version: Winter 2019
+
+import {debugWrite} from './DebugConsole.js';
 
 // All points are integer pixel coordinates
 
@@ -9,7 +11,8 @@
 export function rasterizePoint(board, point, color){
 
     board.writePixel(point[0], point[1], color);
-
+    debugWrite("writePixel(" + point[0].toString() + ", " + point[1].toString() + ")");
+    
 }
 
 // Takes two points given as vec2 in pixel coordinates and a color

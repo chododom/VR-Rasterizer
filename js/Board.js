@@ -2,13 +2,14 @@ import * as THREE from '../extern/three.module.js';
 import * as GUIVR from './GuiVR.js';
 import * as RAS from './rasterizer.js';
 
-// Constants for drawing more
-const POINT_MODE = 0;
-const LINE_MODE = 1;
-const TRI_MODE = 2;
-const FILL_MODE = 3;
-const ANTI_MODE = 4;
-const POLY_MODE = 5;
+// Constants for drawing mode
+const Modes = {
+    POINT_MODE: 0,
+    LINE_MODE: 1,
+    TRI_MODE: 2,
+    FILL_MODE: 3,
+    ANTI_MODE: 4,
+    POLY_MODE: 5};
 
 const MAX_POLY_SIDES = 7;
 
@@ -33,7 +34,7 @@ export class Board extends GUIVR.GuiVR {
 	this.collider = this.board;
 	this.add(this.board);
 	this.clicks = [];
-	this.edit_mode = POINT_MODE;
+	this.edit_mode = Modes.POINT_MODE;
 	this.brush_color = [255, 0, 0];
 
 	var guide_geo = new THREE.BufferGeometry(); // XXX - Local transform problem.
@@ -73,11 +74,24 @@ export class Board extends GUIVR.GuiVR {
     }
 	
     writePixel(x, y, c){
-	console.log(x, y);
 	this.ctx.fillStyle = "#" + (c[0] * 256 * 256 + c[1] * 256 + c[2]).toString(16);
 	this.ctx.fillRect(y*this.stride + 1, (this.n - x - 1) * this.stride + 1, this.stride - 1, this.stride - 1);
 	this.texture.needsUpdate = true;
     }
+
+    reset(){
+	var ctx = this.ctx;
+	ctx.fillStyle = '#000000';
+	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.fillStyle = '#FFFFFF';
+	for (var r = 1; r < ctx.canvas.width; r += this.stride){
+	    for (var c = 1; c < ctx.canvas.height; c += this.stride){
+		ctx.fillRect(r, c, this.stride - 1, this.stride - 1);
+	    }
+	}
+	this.texture.needsUpdate = true;
+    }
+    
 
     collide(uv, pt){
 
@@ -100,22 +114,22 @@ export class Board extends GUIVR.GuiVR {
 	this.guide = new THREE.Line(guide_geo, guide_mat);
 	this.add(this.guide);
 	
-	if (this.edit_mode == POINT_MODE) {
+	if (this.edit_mode == Modes.POINT_MODE) {
 	    RAS.rasterizePoint(this, this.clicks[0], this.brush_color);
 	    this.clicks = [];
-	} else if ((this.edit_mode == LINE_MODE || this.edit_mode == ANTI_MODE) && this.clicks.length == 2){
-	    if (this.edit_mode == LINE_MODE)
+	} else if ((this.edit_mode == Modes.LINE_MODE || this.edit_mode == Modes.ANTI_MODE) && this.clicks.length == 2){
+	    if (this.edit_mode == Modes.LINE_MODE)
 		RAS.rasterizeLine(this, this.clicks[0], this.clicks[1], this.brush_color);
 	    else
 		RAS.rasterizeAntialiasLine(this, this.clicks[0], this.clicks[1], this.brush_color);
 	    this.clicks = [];
-	} else if ((this.edit_mode == TRI_MODE || this.edit_mode == FILL_MODE) && this.clicks.length == 3){
-	    if (this.edit_mode == TRI_MODE)
+	} else if ((this.edit_mode == Modes.TRI_MODE || this.edit_mode == Modes.FILL_MODE) && this.clicks.length == 3){
+	    if (this.edit_mode == Modes.TRI_MODE)
 		RAS.rasterizeTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brush_color);
 	    else
 		RAS.rasterizeFilledTriangle(this, this.clicks[0], this.clicks[1], this.clicks[2], this.brush_color);
 	    this.clicks = [];
-	} else if (this.edit_mode == POLY_MODE && this.clicks.length == 7){
+	} else if (this.edit_mode == Modes.POLY_MODE && this.clicks.length == 7){
 	    RAS.rasterizeFilledSevengon(this, this.clicks, this.brush_color);
 	    this.clicks = [];
 	}
@@ -127,19 +141,5 @@ export class Board extends GUIVR.GuiVR {
 	var c = Math.min(Math.max(Math.floor((uv.x * this.dim - 0.5) / this.stride),0), this.dim - 1);
 	return [r, c];
     }
-    
-    reset(){
-	var ctx = this.ctx;
-	ctx.fillStyle = '#000000';
-	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	ctx.fillStyle = '#FFFFFF';
-	for (var r = 1; r < ctx.canvas.width; r += this.stride){
-	    for (var c = 1; c < ctx.canvas.height; c += this.stride){
-		ctx.fillRect(r, c, this.stride - 1, this.stride - 1);
-	    }
-	}
-	this.texture.needsUpdate = true;
-    }
-    
     
 }

@@ -6,7 +6,6 @@ const gui_elements = [];
 
 export function intersectObjects(raycaster){
 
-
     var colliders = [];
     for (var i = 0; i < gui_elements.length; i++){
 	colliders.push(gui_elements[i].collider);
