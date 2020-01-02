@@ -24,15 +24,7 @@ export function rasterizeLine(board, point1, point2, color){
 
 }
 
-// Takes two points given as vec2 in pixel coordinates and a color
-// given as vec3.  Draws an antialiased line between them of the
-// color.
-export function rasterizeAntialiasLine(board, point1, point2, color){
 
-    // Extra Credit: Implement me!
-    // Remember to cite any sources you reference.
-
-}
 
 // Takes three points given as vec2 in pixel coordinates and a color
 // given as vec3.  Draws triangle between the points of the color.
@@ -57,5 +49,16 @@ export function rasterizeFilledTriangle(board, point1, point2, point3, color){
 export function rasterizeFilledSevengon(board, points, color){
 
     // Extra Credit: Implement me!
+
+}
+
+
+// Takes two points given as vec2 in pixel coordinates and a color
+// given as vec3.  Draws an antialiased line between them of the
+// color.
+export function rasterizeAntialiasLine(board, point1, point2, color){
+
+    // Extra Credit: Implement me!
+    // Remember to cite any sources you reference.
 
 }
