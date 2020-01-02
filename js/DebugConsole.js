@@ -1,6 +1,6 @@
 // Author: Matthew Anderson
 // CSC 385 Computer Graphics
-// Version: Winter 2019
+// Version: Winter 2020
 // Project 1: DebugConsole.
 // Debug tool, displays text outputs as GuiVR object.
 

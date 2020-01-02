@@ -19,6 +19,9 @@ var VRButton = {
 
 			function onSessionStarted( session ) {
 
+			    //console.log(session);
+			    //debugWrite(Object.getOwnPropertySymbols(session).length);
+			    //debugWrite(Object.getOwnPropertySymbols(session));
 				session.addEventListener( 'end', onSessionEnded );
 
 				renderer.xr.setSession( session );

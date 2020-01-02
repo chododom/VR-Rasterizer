@@ -1,6 +1,6 @@
 // Author: Matthew Anderson
 // CSC 385 Computer Graphics
-// Version: Winter 2019
+// Version: Winter 2020
 // Project 1: Main program.
 // Initializes scene, VR system, and event handlers.
 
@@ -8,13 +8,15 @@ import * as THREE from '../extern/three.module.js';
 import { VRButton } from '../extern/VRButton.js';
 import * as BOARD from './Board.js';
 import {DebugConsole, debugWrite} from './DebugConsole.js';
+import * as DEBUG from './DebugHelper.js';
 import * as GUIVR from './GuiVR.js';
 
 // Global variables for high-level program state.
 var camera, scene, renderer, gui;
 
-var oculus_double_click_skip = false; // XXX - Bug workaround, Oculus Go controller doubles event onSelect.
+var oculus_double_click_skip = false; // Bug workaround, Oculus Go browser doubles event onSelectStart.
 
+var tempMatrix = new THREE.Matrix4();
 
 // Initialize THREE objects in the scene.
 function initRoom(){
@@ -38,11 +40,11 @@ function initRoom(){
 
     // Create the floor and ceiling.
     var floor = new THREE.Mesh(new THREE.PlaneBufferGeometry( 10, 10 ), wallMaterial);
-    floor.geometry.rotateX( - 90 * Math.PI / 180 );
+    floor.geometry.rotateX(THREE.Math.degToRad(-90));
     floor.geometry.translate(0,0,0);
     scene.add(floor)
     var ceiling = new THREE.Mesh(new THREE.PlaneBufferGeometry( 10, 10 ), wallMaterial);
-    ceiling.geometry.rotateX( - 270 * Math.PI / 180 );
+    ceiling.geometry.rotateX(THREE.Math.degToRad(-270));
     ceiling.geometry.translate(0,5,0);
     scene.add(ceiling);
     
@@ -50,7 +52,7 @@ function initRoom(){
     for (var i = 0; i < 4; i++){
 	var wall = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), wallMaterial);
 	wall.geometry.translate(0,0,-5);
-	wall.geometry.rotateY( - i * 90 * Math.PI / 180 );
+	wall.geometry.rotateY(THREE.Math.degToRad(-i * 90));
 	scene.add(wall);
     }
 
@@ -60,27 +62,33 @@ function initRoom(){
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xFFFFFF, 0.2));
 
-    // Create drawing board in center of room.
-    var board = new BOARD.Board();
-    board.position.x = 0;
-    board.position.y = 1.6;
-    board.position.z = -2;
-    scene.add(board);
-    
+    // Create four drawing boards.
+    var boards = [];
+    for (var i = 0; i < 4; i++){
+	var board = new BOARD.Board();
+	board.position.x = 0;
+	board.position.y = 1.6;
+	board.position.z = -2;
+	tempMatrix.makeRotationY(THREE.Math.degToRad(-i * 90));
+	board.applyMatrix(tempMatrix);
+	scene.add(board);
+	boards.push(board);
+    }
+        
     // Create debug console to right of board.
-    var debugConsole = new DebugConsole(2);
-    debugConsole.rotateY(-45 * Math.PI / 180 );
-    debugConsole.position.x = 2.5;
-    debugConsole.position.y = 1.5;
-    debugConsole.position.z = -2;
+    var debugConsole = new DebugConsole(2.5);
+    debugConsole.rotateY(THREE.Math.degToRad(-45));
+    debugConsole.position.x = 3;
+    debugConsole.position.y = 1.6;
+    debugConsole.position.z = -3;
     scene.add(debugConsole);
     
     // Create menu buttons to attach to heads up display.
     var buttonList = [
-	new GUIVR.GuiVRButton("Edit Mode", 0, 0, 5, true, function(x){board.setMode(x)}),
-	new GUIVR.GuiVRButton("Red", 255, 0, 255, true, function(x){board.setRed(x)}),
-	new GUIVR.GuiVRButton("Green", 0, 0, 255, true, function(x){board.setGreen(x)}),
-	new GUIVR.GuiVRButton("Blue", 0, 0, 255, true, function(x){board.setBlue(x)})];
+	new GUIVR.GuiVRButton("Edit Mode", 0, 0, 5, true, function(x){boards.map(b => b.setMode(x));}),
+	new GUIVR.GuiVRButton("Red", 255, 0, 255, true, function(x){boards.map(b => b.setRed(x));}),
+	new GUIVR.GuiVRButton("Green", 0, 0, 255, true, function(x){boards.map(b => b.setGreen(x));}),
+	new GUIVR.GuiVRButton("Blue", 0, 0, 255, true, function(x){boards.map(b => b.setBlue(x));})];
     gui = new GUIVR.GuiVRMenu(buttonList);
     gui.rotation.y = -0.2;
     gui.scale.x = 0.45;
@@ -127,6 +135,9 @@ function init() {
 
     // Set handler for mouse clicks.
     window.onclick = onSelectStart;
+
+
+
     
 }
 
@@ -151,15 +162,17 @@ function onSelectStart( event ) {
     } else if (!(event instanceof MouseEvent) && renderer.xr.isPresenting()){
 	// Handle controller click in VR.
 
-	// XXX - Bug workaround, Oculus Go controller doubles event
-	// onSelect.  Also bugs WebXR emulator to 1/2 click.  Detect
-	// headset model more precisely.
-	if (oculus_double_click_skip){
-	    oculus_double_click_skip = false;
-	    return;
+	// Bug workaround, Oculus Go browser doubles onSelectStart
+	// event.
+	if (navigator.platform == "Linux armv8l"){
+	    if (oculus_double_click_skip){
+		console.log("SKIPPING");
+		oculus_double_click_skip = false;
+		return;
+	    } 
+	    oculus_double_click_skip = true;
 	}
-	oculus_double_click_skip = true;
-
+	    
 	// Retrieve the pointer object.
 	var controller = event.target;
 	var controllerPointer = controller.getObjectByName('pointer');
@@ -172,9 +185,14 @@ function onSelectStart( event ) {
 	raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
 	raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-	// Register the click into the GUI.`
+	// Register the click into the GUI.
 	GUIVR.intersectObjects(raycaster);
-    }
+
+	//DEBUG.displaySession(renderer.xr);
+	//DEBUG.displaySources(renderer.xr);
+	//DEBUG.displayNavigator(navigator);
+
+     }
 }
 
 

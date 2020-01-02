@@ -1,6 +1,6 @@
 // Author: Matthew Anderson
 // CSC 385 Computer Graphics
-// Version: Winter 2019
+// Version: Winter 2020
 // Project 1: Drawing board representation.
 
 import * as THREE from '../extern/three.module.js';
@@ -48,7 +48,7 @@ export class Board extends GUIVR.GuiVR {
 	// Set the previously seen clicks, initial edit mode, and brush color.
 	this.clicks = [];
 	this.editMode = Modes.POINT_MODE;
-	this.brushColor = new THREE.Vector3([255, 0, 0]);
+	this.brushColor = new THREE.Vector3(255, 0, 0);
 
 	// Set up the geometry to draw the tracer line.
 	var guideGeometry = new THREE.BufferGeometry(); // XXX - Local transform problem.
@@ -89,15 +89,15 @@ export class Board extends GUIVR.GuiVR {
     }
 
     setRed(r){
-	this.brushColor[0] = r;
+	this.brushColor.x = r;
     }
 
     setGreen(g){
-	this.brushColor[1] = g;
+	this.brushColor.y = g;
     }
     
     setBlue(b){
-	this.brushColor[2] = b;
+	this.brushColor.z = b;
     }
 
     setMode(m){
@@ -111,7 +111,7 @@ export class Board extends GUIVR.GuiVR {
     // The parameters x and y are integers, and c is a THREE.Vector3
     // specifying a color.
     writePixel(x, y, c){
-	this.ctx.fillStyle = "#" + (c[0] * 256 * 256 + c[1] * 256 + c[2]).toString(16);
+	this.ctx.fillStyle = "#" + (c.x * 256 * 256 + c.y * 256 + c.z).toString(16);
 	this.ctx.fillRect(x * this.stride + 1, y * this.stride + 1, this.stride - 1, this.stride - 1);
 	this.texture.needsUpdate = true;
     }
@@ -149,14 +149,16 @@ export class Board extends GUIVR.GuiVR {
 	// Update the tracer.
 	var i = (this.clicks.length-1)*3;
 	var pos = this.guide.geometry.attributes.position.array;
-	// XXX - this is a hack.  Need to compute from board transform.
-	pos[i++] = pt.x; pos[i++] = pt.y - 1.6; pos[i++] = pt.z + 2.01;
+	var tempMatrix = new THREE.Matrix4();
+	tempMatrix.getInverse(this.matrixWorld);
+	pt.applyMatrix4(tempMatrix);
+	pos[i++] = pt.x; pos[i++] = pt.y; pos[i++] = pt.z + 0.01;
 	pos[i++] = pos[0]; pos[i++] = pos[1]; pos[i++] = pos[2];
 	this.remove(this.guide);
 	var guideGeometry = new THREE.BufferGeometry();
 	guideGeometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 	guideGeometry.setDrawRange(0,this.clicks.length+1);
-	var guideMaterial = new THREE.LineBasicMaterial({color: 0x0000FF});
+	var guideMaterial = new THREE.LineBasicMaterial({color: 0x0000FF, linewidth: 4});
 	this.guide = new THREE.Line(guideGeometry, guideMaterial);
 	this.add(this.guide);
 
