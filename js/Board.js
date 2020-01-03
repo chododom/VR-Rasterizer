@@ -51,7 +51,7 @@ export class Board extends GUIVR.GuiVR {
 	this.brushColor = new THREE.Vector3(255, 0, 0);
 
 	// Set up the geometry to draw the tracer line.
-	var guideGeometry = new THREE.BufferGeometry(); // XXX - Local transform problem.
+	var guideGeometry = new THREE.BufferGeometry(); 
 	var guidePositions = new Float32Array((MAX_POLY_SIDES + 1) * 3);
 	guideGeometry.setAttribute('position', new THREE.BufferAttribute(guidePositions, 3));
 	guideGeometry.setDrawRange(0,0);
@@ -61,15 +61,15 @@ export class Board extends GUIVR.GuiVR {
 
     	var loader = new THREE.FontLoader();
 	var current = this;
-	loader.load( '../extern/fonts/helvetiker_bold.typeface.json', function ( font ) {
-	    var textGeo = new THREE.TextBufferGeometry( "Bresenham's Algorithm", {
+	loader.load('../extern/fonts/helvetiker_bold.typeface.json', function (font){
+	    var textGeo = new THREE.TextBufferGeometry("Bresenham's Algorithm", {
 		font: font,
 		size: 0.15,
 		height: 0.02,
 		curveSegments: 3,
-	    } );
-	    var textMaterial = new THREE.MeshPhongMaterial( { color: 0x729FCF, specular: 0x000000 } );
-	    var debug_mesh = new THREE.Mesh( textGeo, textMaterial );
+	    });
+	    var textMaterial = new THREE.MeshPhongMaterial({color: 0x729FCF, specular: 0x000000});
+	    var debug_mesh = new THREE.Mesh(textGeo, textMaterial);
 	    debug_mesh.position.x = -1.15;
 	    debug_mesh.position.y = 1;
 	    debug_mesh.position.z = 0.01;

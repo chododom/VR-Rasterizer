@@ -34,7 +34,7 @@ function initRoom(){
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.magFilter = THREE.LinearFilter;
     wallTexture.minFilter = THREE.LinearMipmapNearestFilter;
-    wallTexture.repeat.set( 10, 10 );
+    wallTexture.repeat.set(10, 10);
     var wallMaterial = new THREE.MeshPhongMaterial();
     wallMaterial.map = wallTexture;
 
@@ -108,19 +108,19 @@ function init() {
     initRoom();
     
     // Create the main camera pointing at the board.
-    camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 10 );
-    camera.position.set( 0, 1.6, 1 );
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10);
+    camera.position.set(0, 1.6, 1);
 
     // Set up renderer
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.xr.enabled = true;
-    document.body.appendChild( renderer.domElement );
+    document.body.appendChild(renderer.domElement);
 
     // Add VR button.
-    document.body.appendChild( VRButton.createButton( renderer ) );
-    window.addEventListener( 'resize', onWindowResize, false );
+    document.body.appendChild(VRButton.createButton(renderer));
+    window.addEventListener('resize', onWindowResize, false);
 
     // Set up the controller to be represented as a line.
     var controller = renderer.xr.getController(0);
@@ -135,23 +135,20 @@ function init() {
 
     // Set handler for mouse clicks.
     window.onclick = onSelectStart;
-
-
-
     
 }
 
 // Event handler for controller clicks when in VR mode, and for mouse
 // clicks outside of VR mode.
-function onSelectStart( event ) {
+function onSelectStart(event){
 
     if (event instanceof MouseEvent && !renderer.xr.isPresenting()){
 	// Handle mouse click outside of VR.
 	
 	// Determine screen coordinates of click.
 	var mouse = new THREE.Vector2();
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 	// Create raycaster from the camera through the click into the scene.
 	var raycaster = new THREE.Raycaster();
 	raycaster.setFromCamera(mouse, camera);
