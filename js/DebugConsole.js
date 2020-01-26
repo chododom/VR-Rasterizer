@@ -50,9 +50,11 @@ export class DebugConsole extends GUIVR.GuiVR {
 	this.texture.magFilter = THREE.LinearFilter;
 	this.texture.minFilter = THREE.LinearFilter;
 	this.updateTexture();
+
 	// Create rectangular mesh textured with output that is displayed.
 	var c = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.w, this.h),
-			       new THREE.MeshBasicMaterial({map: this.texture}));
+				   new THREE.MeshBasicMaterial({map: this.texture}));
+
 	this.add(c);
 	// Set the console's rectangle to collider as a gui element.
 	this.collider = c;
@@ -67,7 +69,7 @@ export class DebugConsole extends GUIVR.GuiVR {
 		height: 0.02,
 		curveSegments: 3,
 	    } );
-	    var textMaterial = new THREE.MeshPhongMaterial( { color: 0xad7fa8, specular: 0x111111 } );
+	    var textMaterial = new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x111111 } );
 	    var debug_mesh = new THREE.Mesh( textGeo, textMaterial );
 	    debug_mesh.position.x = -current.w / 2 + 0.02;
 	    debug_mesh.position.y = current.h / 2 + 0.03;
@@ -84,9 +86,9 @@ export class DebugConsole extends GUIVR.GuiVR {
     updateTexture(){
 	var ctx = this.ctx;
 	// Clear the canvas.
-	ctx.fillStyle = '#AA00AA';
+	ctx.fillStyle = '#000000';
 	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	ctx.fillStyle = '#AAAAAA';
+	ctx.fillStyle = '#F54D3F';
 	ctx.fillRect(2, 2, ctx.canvas.width-4, ctx.canvas.height-4);
 	// Display the output.
 	ctx.fillStyle = '#000000';

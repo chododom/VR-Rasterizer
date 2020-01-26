@@ -25,11 +25,19 @@ function initRoom(){
     var ctx = document.createElement('canvas').getContext('2d');
     ctx.canvas.width = 512;
     ctx.canvas.height = 512;
-    ctx.fillStyle = '#EDD400';
+    ctx.fillStyle = '#3AEBF5';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#14A197';
     ctx.fillRect(3, 3, ctx.canvas.width-6, ctx.canvas.height-6);
     var wallTexture = new THREE.CanvasTexture(ctx.canvas);
+
+    const loader = new THREE.TextureLoader();
+
+    const material = new THREE.MeshPhongMaterial({
+      map: loader.load('https://cdn.pizap.com/pizapfiles/images/photo_backgrounds_textures_app04.jpg'),
+    });
+
+
     wallTexture.wrapS = THREE.RepeatWrapping;
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.magFilter = THREE.LinearFilter;
@@ -37,6 +45,8 @@ function initRoom(){
     wallTexture.repeat.set(10, 10);
     var wallMaterial = new THREE.MeshPhongMaterial();
     wallMaterial.map = wallTexture;
+    
+    wallMaterial = material;
 
     // Create the floor and ceiling.
     var floor = new THREE.Mesh(new THREE.PlaneBufferGeometry( 10, 10 ), wallMaterial);
@@ -57,7 +67,7 @@ function initRoom(){
     }
 
     // Create a light in the roomm.
-    var light = new THREE.PointLight(0xffffff, 0.5);
+    var light = new THREE.PointLight(0xff0000, 2);
     light.position.y += 4.5;
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xFFFFFF, 0.2));
@@ -74,27 +84,32 @@ function initRoom(){
 	scene.add(board);
 	boards.push(board);
     }
-        
-    // Create debug console to right of board.
-    var debugConsole = new DebugConsole(2.5);
-    debugConsole.rotateY(THREE.Math.degToRad(-45));
-    debugConsole.position.x = 3;
-    debugConsole.position.y = 1.6;
-    debugConsole.position.z = -3;
-    scene.add(debugConsole);
     
+    // Create four debugging consoles
+    var debugConsoles = [];
+    for (var i = 0; i < 4; i++){
+        var debugConsole = new DebugConsole(2.5);
+        debugConsole.rotateY(THREE.Math.degToRad(-45 + i * 90));
+        debugConsole.position.x = i == 0 || i == 3 ? 3 : -3;
+        debugConsole.position.y = 1.6;
+        debugConsole.position.z = i == 0 || i == 1 ? -3 : 3;
+        scene.add(debugConsole);
+	    debugConsoles.push(debugConsole);
+    }
+
     // Create menu buttons to attach to heads up display.
     var buttonList = [
 	new GUIVR.GuiVRButton("Edit Mode", 0, 0, 5, true, function(x){boards.map(b => b.setMode(x));}),
 	new GUIVR.GuiVRButton("Red", 255, 0, 255, true, function(x){boards.map(b => b.setRed(x));}),
 	new GUIVR.GuiVRButton("Green", 0, 0, 255, true, function(x){boards.map(b => b.setGreen(x));}),
-	new GUIVR.GuiVRButton("Blue", 0, 0, 255, true, function(x){boards.map(b => b.setBlue(x));})];
+    new GUIVR.GuiVRButton("Blue", 0, 0, 255, true, function(x){boards.map(b => b.setBlue(x));}),
+    new GUIVR.GuiVRButton("Height", 1.6, 0.8, 5, true, function(x){})];
     gui = new GUIVR.GuiVRMenu(buttonList);
-    gui.rotation.y = -0.2;
+    gui.rotation.y = 0.2;
     gui.scale.x = 0.45;
     gui.scale.y = 0.45;
-    gui.position.x = 0.45;
-    gui.position.y = -0.45;
+    gui.position.x = -0.53;
+    gui.position.y = -0.4;
     gui.position.z = -1.5;
     scene.add(gui);
 }

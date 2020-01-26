@@ -108,7 +108,7 @@ export class GuiVRButton extends THREE.Group {
 	ctx.fillText(this.label, 15, ctx.canvas.height/1.5);
 	// Display slider at current value.
 	var intervalWidth = 1 / (this.maxVal - this.minVal);
-	var width = Math.floor(this.val * intervalWidth * Math.floor(ctx.canvas.width/2));
+	var width = Math.floor((this.val - this.minVal) * intervalWidth * Math.floor(ctx.canvas.width/2));
 	ctx.fillStyle = '#729FCF';
 	ctx.fillRect(Math.floor(ctx.canvas.width/2), 3, width - 3, ctx.canvas.height - 6);
 	// Display current value.

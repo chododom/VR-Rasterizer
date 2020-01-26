@@ -62,16 +62,16 @@ export class Board extends GUIVR.GuiVR {
     	var loader = new THREE.FontLoader();
 	var current = this;
 	loader.load('../extern/fonts/helvetiker_bold.typeface.json', function (font){
-	    var textGeo = new THREE.TextBufferGeometry("Bresenham's Algorithm", {
+	    var textGeo = new THREE.TextBufferGeometry("Chodounsky's Algorithm", {
 		font: font,
 		size: 0.15,
 		height: 0.02,
 		curveSegments: 3,
 	    });
-	    var textMaterial = new THREE.MeshPhongMaterial({color: 0x729FCF, specular: 0x000000});
+	    var textMaterial = new THREE.MeshPhongMaterial({color: 0x1C1D1D, specular: 0x000000});
 	    var debug_mesh = new THREE.Mesh(textGeo, textMaterial);
 	    debug_mesh.position.x = -1.15;
-	    debug_mesh.position.y = 1;
+	    debug_mesh.position.y = 1.1;
 	    debug_mesh.position.z = 0.01;
 	    current.add(debug_mesh);
 	});
