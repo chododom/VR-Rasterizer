@@ -6,6 +6,13 @@ import {debugWrite} from './DebugConsole.js';
 
 // All points are integer pixel coordinates
 
+class Pixel{
+    constructor(newX, newY){
+        this.x = newX;
+        this.y = newY;
+    }
+}
+
 // Takes a point given as vec2 in pixel coordinates and a color given
 // as vec3.  Changes the pixel that the point lies in to the color.
 export function rasterizePoint(board, point, color){
@@ -34,8 +41,11 @@ export function rasterizeLine(board, point1, point2, color){
     
     let err = dx - dy;
 
+    let filledPixels = []
+
     while(true) {
         board.writePixel(x1, y1, color);
+        filledPixels.push(new Pixel(x1, y1));
 
         if ((x1 === x2) && (y1 === y2)) break;
         let e2 = 2 * err;
@@ -55,18 +65,21 @@ export function rasterizeLine(board, point1, point2, color){
 // given as vec3.  Draws triangle between the points of the color.
 export function rasterizeTriangle(board, point1, point2, point3, color){
     debugWrite("rasterizeTriangle(" + point1.toString() + ", " + point2.toString() + ", " + point3.toString() + ")");
-    rasterizeLine(board, point1, point2, color);
-    rasterizeLine(board, point2, point3, color);
-    rasterizeLine(board, point1, point3, color);
+    let filledPixels = Array(rasterizeLine(board, point1, point2, color));
+    filledPixels = filledPixels.concat(rasterizeLine(board, point2, point3, color));
+    filledPixels = filledPixels.concat(rasterizeLine(board, point1, point3, color));
+    print(filledPixels);
+}
+
+function floodFill(){
+
 }
 
 // Takes three points given as vec2 in pixel coordinates and a color
 // as a vec3.  Draws a filled triangle between the points of the
 // color. Implemented using flood fill.
-export function rasterizeFilledTriangle(board, point1, point2, point3, color){
-
-    // Implement me!
-
+export function rasterizeFilledTriangle(board, point1, point2, point3, color){  
+    
 }
 
 // Takes an array of seven points given as vec2 in pixel coordinates
