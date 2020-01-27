@@ -12,11 +12,12 @@ import * as DEBUG from './DebugHelper.js';
 import * as GUIVR from './GuiVR.js';
 
 // Global variables for high-level program state.
-var camera, scene, renderer, gui;
+var camera, scene, renderer, gui, sound, cameraGroup = new THREE.Group();
 
 var oculus_double_click_skip = false; // Bug workaround, Oculus Go browser doubles event onSelectStart.
 
 var tempMatrix = new THREE.Matrix4();
+
 
 // Initialize THREE objects in the scene.
 function initRoom(){
@@ -103,13 +104,18 @@ function initRoom(){
 	new GUIVR.GuiVRButton("Red", 255, 0, 255, true, function(x){boards.map(b => b.setRed(x));}),
 	new GUIVR.GuiVRButton("Green", 0, 0, 255, true, function(x){boards.map(b => b.setGreen(x));}),
     new GUIVR.GuiVRButton("Blue", 0, 0, 255, true, function(x){boards.map(b => b.setBlue(x));}),
-    new GUIVR.GuiVRButton("Height", 1.6, 0.8, 5, true, function(x){})];
+    new GUIVR.GuiVRButton("Height", 0, -1, 2, true, function(x){cameraGroup.position.y = x;}),
+    new GUIVR.GuiVRButton("Sound", 50, 0, 100, true, function(x){
+        if(sound.isPlaying){
+            sound.setVolume(x * 0.01);
+        }
+    })];
     gui = new GUIVR.GuiVRMenu(buttonList);
     gui.rotation.y = 0.2;
     gui.scale.x = 0.45;
     gui.scale.y = 0.45;
-    gui.position.x = -0.53;
-    gui.position.y = -0.4;
+    gui.position.x = -0.8;
+    gui.position.y = -0.35;
     gui.position.z = -1.5;
     scene.add(gui);
 }
@@ -119,13 +125,31 @@ function init() {
     // Create a scene
     scene = new THREE.Scene();
 
-    // Create the contents of the room.
-    initRoom();
-    
     // Create the main camera pointing at the board.
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10);
     camera.position.set(0, 1.6, 1);
 
+    cameraGroup.add(camera);
+    scene.add(cameraGroup);
+
+    // create an AudioListener and add it to the camera
+    var listener = new THREE.AudioListener();
+    cameraGroup.add(listener);
+
+    // create a global audio source
+    sound = new THREE.Audio( listener );
+
+    // load a sound and set it as the Audio object's buffer
+    var audioLoader = new THREE.AudioLoader();
+    audioLoader.load( 'sounds/rick_roll.ogg', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop( false );
+	sound.setVolume( 0.5 );
+    });
+
+    // Create the contents of the room.
+    initRoom();
+    
     // Set up renderer
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio( window.devicePixelRatio );
@@ -156,6 +180,7 @@ function init() {
 // Event handler for controller clicks when in VR mode, and for mouse
 // clicks outside of VR mode.
 function onSelectStart(event){
+    if(!sound.isPlaying) sound.play();
 
     if (event instanceof MouseEvent && !renderer.xr.isPresenting()){
 	// Handle mouse click outside of VR.
