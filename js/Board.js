@@ -193,6 +193,4 @@ export class Board extends GUIVR.GuiVR {
 	}
 	
     }
-
-    
 }

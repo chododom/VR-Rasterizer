@@ -1,0 +1,46 @@
+Part 1
+
+Question 1.1
+Oculus Go + Netflix app
+1. How does the app present information to the user?
+Simulated living room with a TV in front of user, where the Netflix app environment runs.
+2. How does the app allow the user to interact with it?
+Point and click system, while stationary sitting position is assumed. User can look around the room, but cannot move.
+3. Do you feel immersed?  Why or why not?
+I’d say the experience is more immersive than watching Netflix on a laptop, but less then watching movies in the cinema. The images aren’t very sharp, it ruins the feel of the movies and isn’t too comfortable to watch.
+4. Did you feel any negative physiological responses to using the application (e.g., nausea, headache, dizziness,...)?  If so, do was there something particular about the app that you think caused it?  Note: If you do feel these things you should stop using the headset for a bit and/or sit down while using them.
+No, but after some time, I maybe would get a headache from the bad quality.
+5. What did the app do well, and what could be improved?
+I like the environment (living room) and idea with the TV screen in it (as opposed to floating window in YouTube app), but the headset cannot display the content in good enough quality to get a good viewing experience.
+
+Oculus Quest + Superhot
+1. How does the app present information to the user?
+Not very well, but it may be the intention. It doesn’t give user much information about controls, goal of the game, etc.…  
+2. How does the app allow the user to interact with it?
+VR headset allows the user to look around the rooms, while remotes serve as hands which can punch, grab weapons, use weapons. 6DOF on headset allow movement through the rooms.
+3. Do you feel immersed?  Why or why not?
+Yes, the whole vibe of the game immerses the user and the control over movement, weapon movement, time gives user real sense of danger and control.
+4. Did you feel any negative physiological responses to using the application (e.g., nausea, headache, dizziness,...)?  If so, do was there something particular about the app that you think caused it?  Note: If you do feel these things you should stop using the headset for a bit and/or sit down while using them.
+No.
+5. What did the app do well, and what could be improved?
+Sometimes when I tried to punch oncoming attackers, the attack didn’t really work and I got killed, which was quite frustrating. I’m not sure if it was my fault for maybe punching too fast or if the tracking wasn’t quite calibrated.
+
+HTC Vive + Tilt brush
+1. How does the app present information to the user?
+Floating menu, point and click to choose. Inside the game, one controller has a 3-sided palette where you point and click to choose drawing method, background,… 
+2. How does the app allow the user to interact with it?
+One remote is used for selecting drawing options and how the world around is shaped, second remote is used to draw. Headset has 6DOF and so do the remotes, they are very precise.
+3. Do you feel immersed?  Why or why not?
+Yes, the accuracy and the 6DOF add a lot to the feeling of being immersed. Only distraction is the cable at the back of the headset.
+4. Did you feel any negative physiological responses to using the application (e.g., nausea, headache, dizziness,...)?  If so, do was there something particular about the app that you think caused it?  Note: If you do feel these things you should stop using the headset for a bit and/or sit down while using them.
+I did not.
+5. What did the app do well, and what could be improved?
+App is easy to control, I love the menu on the secondary remote which controls painting options. The way it’s 3-sided is very smart, as it is easy to use and able to provide a lot of options without the menus being cluttered. 
+
+
+Question 1.2
+1. I don’t feel that the browser requires additional 3 degrees of freedom, it need just a simple point and click tool and that is effective enough with 3 DOF. This is one app where the Oculus Go does just as good of a job as the other two systems.
+2. The starter project does not necessarily need more DOF either, although it does add to the immersive feeling of the app. It is nice to have the freedom and not be limited, but effectiveness does not get affected.
+3. There may be compatibility issues that arise, for example, it may not always be a good idea to create generic simple apps with support of 6 DOF, as older and simpler devices cannot run those.
+4. Because apps developed for the Oculus Go will work on the other devices as well, the forwards compatibility is okay unlike the backwards one.
+
